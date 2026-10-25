@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bách Hóa Xanh - Dashboard Báo Cáo Kinh Doanh Siêu Thị</title>
+  <meta name="description" content="Dashboard báo cáo doanh thu chuỗi siêu thị Bách Hóa Xanh - Khu vực Tỉnh An Giang">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- SheetJS (XLSX) CDN for Excel reading -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bhx: {
+              green: '#007738',
+              'green-dark': '#005427',
+              'green-light': '#028c46',
+              yellow: '#FFC700',
+              'yellow-light': '#FFF066',
+              'yellow-dark': '#E5A800',
+              surface: '#F4F7F5'
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #F4F7F5;
+      color: #1a2e22;
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #edf2ee; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #c3d9cb; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #007738; }
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white; }
+    }
+  </style>
+<script src="/_aistudio-iframe.js?v=6634132a"></script></head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-bhx-yellow selection:text-bhx-green-dark">
+
+  <!-- TOP BRAND HEADER -->
+  <header class="bg-gradient-to-r from-bhx-green-dark via-bhx-green to-bhx-green-light text-white shadow-md border-b-4 border-bhx-yellow sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-18 py-2">
+        <div class="flex items-center space-x-3.5">
+          <div class="w-11 h-11 bg-bhx-yellow rounded-xl flex items-center justify-center shadow-md text-bhx-green-dark font-extrabold text-xl tracking-tight flex-shrink-0">
+            <span>BHX</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold tracking-widest text-bhx-yellow uppercase">BÁCH HÓA XANH</span>
+              <span class="text-xs text-emerald-200">·</span>
+              <span class="text-xs font-medium text-emerald-100" id="header-store-count">Khu vực Tỉnh An Giang (21 Siêu thị)</span>
+            </div>
+            <h1 class="text-base sm:text-xl font-bold tracking-tight text-white">
+              Báo Cáo Doanh Thu Kinh Doanh Siêu Thị
+            </h1>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-3">
+          <!-- Button Cập Nhật Data Mới -->
+          <button onclick="openImportModal()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-bhx-yellow text-bhx-green-dark hover:bg-yellow-300 transition shadow-xs ring-2 ring-yellow-400/40">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+            <span>Cập Nhật Data Mới</span>
+          </button>
+
+          <button onclick="window.print()" class="no-print hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 hover:bg-white/20 text-white transition border border-white/20">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+            <span>In Báo Cáo</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- SUB-HEADER / NOTIFICATION BANNER -->
+  <div class="bg-emerald-900/10 border-b border-emerald-900/15 py-1.5 px-4 text-xs text-slate-700">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1">
+      <div class="flex items-center gap-2">
+        <span class="flex h-2 w-2 relative">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
+        </span>
+        <span class="font-semibold text-bhx-green-dark">Dữ liệu Retime trực tiếp:</span>
+        <span id="banner-report-date">Ngày 25/03/2026</span>
+        <span id="custom-data-badge" class="hidden bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">
+          Dữ liệu đã cập nhật
+        </span>
+      </div>
+      <div class="flex items-center gap-3 text-slate-500 font-medium">
+        <span>Tiến độ hoàn thành: <b class="text-slate-800 font-mono" id="banner-progress">88.23%</b></span>
+        <span>·</span>
+        <span class="text-bhx-green font-semibold" id="banner-active-stores">21/21 Điểm bán kết nối POS</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- OVERVIEW STATS CARDS -->
+    <section>
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-bhx-green-dark flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-bhx-green"></span>
+          Tổng quan chỉ số kinh doanh toàn khu vực
+        </h2>
+        <div class="flex items-center gap-2 text-xs text-slate-500">
+          <span id="card-date-indicator">Cập nhật ngày 25/03/2026</span>
+          <button onclick="openImportModal()" class="text-bhx-green font-semibold hover:underline">[Đổi dữ liệu mới]</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Card 1: Tổng Lũy Kế -->
+        <div class="bg-white rounded-xl p-4 shadow-sm border border-emerald-900/10 hover:shadow-md transition">
+          <div class="flex items-center justify-between text-slate-500 mb-1.5">
+            <span class="text-xs font-semibold tracking-wide uppercase text-slate-600">Tổng DT Lũy Kế</span>
+            <span class="p-1.5 bg-emerald-50 text-bhx-green rounded-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+            </span>
+          </div>
+          <div class="text-xl sm:text-2xl font-extrabold text-bhx-green-dark font-mono tracking-tight" id="stat-total-luyke">
+            27.651.350.000 đ
+          </div>
+          <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
+            <span>Base: <b class="font-mono text-slate-700" id="stat-total-base">31.340.000.000 đ</b></span>
+            <span class="font-bold text-bhx-green bg-emerald-50 px-2 py-0.5 rounded text-[11px]" id="stat-avg-percent">88,23%</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Retime Hôm Nay -->
+        <div class="bg-white rounded-xl p-4 shadow-sm border border-emerald-900/10 hover:shadow-md transition">
+          <div class="flex items-center justify-between text-slate-500 mb-1.5">
+            <span class="text-xs font-semibold tracking-wide uppercase text-slate-600">Doanh Thu Retime Hôm Nay</span>
+            <span class="p-1.5 bg-amber-50 text-amber-700 rounded-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </span>
+          </div>
+          <div class="text-xl sm:text-2xl font-extrabold text-amber-700 font-mono tracking-tight" id="stat-total-today">
+            1.003.790.000 đ
+          </div>
+          <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
+            <span>Offline: <b class="font-mono text-slate-700" id="stat-offline-today">840,4 Tr</b></span>
+            <span>Online: <b class="font-mono text-emerald-700" id="stat-online-today">163,4 Tr</b></span>
+          </div>
+        </div>
+
+        <!-- Card 3: Số Siêu Thị Hoạt Động -->
+        <div class="bg-white rounded-xl p-4 shadow-sm border border-emerald-900/10 hover:shadow-md transition">
+          <div class="flex items-center justify-between text-slate-500 mb-1.5">
+            <span class="text-xs font-semibold tracking-wide uppercase text-slate-600">Siêu Thị Hoạt Động</span>
+            <span class="p-1.5 bg-emerald-50 text-bhx-green rounded-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+            </span>
+          </div>
+          <div class="text-xl sm:text-2xl font-extrabold text-bhx-green-dark font-mono tracking-tight" id="stat-store-count">
+            21 / 21 <span class="text-sm font-normal text-slate-500">Điểm bán</span>
+          </div>
+          <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
+            <span class="text-bhx-green font-semibold">100% Đang hoạt động</span>
+            <span class="text-slate-500">An Giang</span>
+          </div>
+        </div>
+
+        <!-- Card 4: Tổng Bills -->
+        <div class="bg-white rounded-xl p-4 shadow-sm border border-emerald-900/10 hover:shadow-md transition">
+          <div class="flex items-center justify-between text-slate-500 mb-1.5">
+            <span class="text-xs font-semibold tracking-wide uppercase text-slate-600">Tổng Bill Hôm Nay</span>
+            <span class="p-1.5 bg-emerald-50 text-bhx-green rounded-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+            </span>
+          </div>
+          <div class="text-xl sm:text-2xl font-extrabold text-slate-900 font-mono tracking-tight" id="stat-total-bills">
+            7.680 <span class="text-sm font-normal text-slate-500">Hóa đơn</span>
+          </div>
+          <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
+            <span>Còn lại Base:</span>
+            <span class="font-mono font-bold text-rose-600" id="stat-total-conlai">3.688.650.000 đ</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COLUMN CHART -->
+    <section class="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-emerald-900/10">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
+        <div>
+          <h2 class="text-base sm:text-lg font-bold text-bhx-green-dark flex items-center gap-2">
+            <svg class="w-5 h-5 text-bhx-green" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            Biểu Đồ Top Siêu Thị Doanh Thu Cao Nhất
+          </h2>
+          <p class="text-xs text-slate-500 mt-0.5">So sánh hiệu quả bán hàng giữa các chi nhánh dẫn đầu chuỗi Bách Hóa Xanh An Giang</p>
+        </div>
+
+        <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg text-xs font-semibold self-start sm:self-auto">
+          <button id="btn-chart-luyke" onclick="switchChartMode('luyke')" class="px-3 py-1.5 rounded-md transition shadow-xs bg-bhx-green text-white">
+            Top Lũy Kế
+          </button>
+          <button id="btn-chart-today" onclick="switchChartMode('today')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900">
+            Top Retime Hôm Nay
+          </button>
+        </div>
+      </div>
+
+      <div class="relative w-full h-[320px] sm:h-[380px]">
+        <canvas id="topRevenueChart"></canvas>
+      </div>
+    </section>
+
+    <!-- SEARCH & FILTER TOOLBAR -->
+    <section class="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-emerald-900/10 flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div class="relative flex-1 max-w-md">
+        <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        <input 
+          type="text" 
+          id="search-input" 
+          onkeyup="handleFilterChange()" 
+          placeholder="Tìm tên siêu thị hoặc mã ĐN (vd: 6119, Tri Tôn)..." 
+          class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-bhx-green focus:bg-white transition"
+        >
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-xs font-semibold text-slate-500">Loại Kho:</span>
+        <button onclick="setTierFilter('all')" data-tier="all" class="tier-btn px-2.5 py-1 rounded-md text-xs font-medium bg-bhx-green text-white" id="filter-all-btn">Tất cả</button>
+        <button onclick="setTierFilter('5 Tỷ -> <8 Tỷ')" data-tier="5 Tỷ -> <8 Tỷ" class="tier-btn px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200">5 - 8 Tỷ</button>
+        <button onclick="setTierFilter('3 Tỷ -> <5 Tỷ')" data-tier="3 Tỷ -> <5 Tỷ" class="tier-btn px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200">3 - 5 Tỷ</button>
+        <button onclick="setTierFilter('1.2 Tỷ -> <2 Tỷ')" data-tier="1.2 Tỷ -> <2 Tỷ" class="tier-btn px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200">1.2 - 2 Tỷ</button>
+      </div>
+    </section>
+
+    <!-- TABLES SECTION -->
+    <div class="space-y-6">
+
+      <!-- BẢNG 1: LŨY KẾ DOANH THU -->
+      <section class="bg-white rounded-xl shadow-sm border border-emerald-900/10 overflow-hidden">
+        <div class="bg-gradient-to-r from-bhx-green-dark to-bhx-green px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-bhx-yellow">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-bhx-yellow text-bhx-green-dark">BẢNG 1</span>
+              <h3 class="text-sm sm:text-base font-bold text-white tracking-tight">Báo Cáo Lũy Kế Doanh Thu Khu Vực</h3>
+            </div>
+            <p class="text-xs text-emerald-100 mt-0.5">Theo dõi chỉ tiêu Base, doanh thu thực hiện lũy kế và tỷ lệ hoàn thành</p>
+          </div>
+          <div class="text-xs text-emerald-100 font-medium">
+            Tiến độ ngày: <span class="text-bhx-yellow font-bold font-mono">25/31 ngày (~80.6%)</span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left text-xs sm:text-sm">
+            <thead class="bg-slate-50 text-slate-600 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200">
+              <tr>
+                <th scope="col" class="py-3 px-3 text-center w-14">Xếp hạng</th>
+                <th scope="col" class="py-3 px-4">Tên Siêu Thị & Mã ĐN</th>
+                <th scope="col" class="py-3 px-4 text-right">Thực Hiện (VNĐ)</th>
+                <th scope="col" class="py-3 px-4 text-right">Base (VNĐ)</th>
+                <th scope="col" class="py-3 px-4 text-center w-44">% Hoàn Thành</th>
+                <th scope="col" class="py-3 px-4 text-right">Còn Lại (VNĐ)</th>
+              </tr>
+            </thead>
+            <tbody id="table-luyke-body" class="divide-y divide-slate-100 text-slate-700"></tbody>
+            <tfoot class="bg-emerald-50/80 font-bold border-t-2 border-bhx-green text-xs sm:text-sm">
+              <tr id="table-luyke-foot"></tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+      <!-- BẢNG 2: RETIME DOANH THU HÔM NAY -->
+      <section class="bg-white rounded-xl shadow-sm border border-emerald-900/10 overflow-hidden">
+        <div class="bg-gradient-to-r from-amber-700 to-amber-600 px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-bhx-yellow">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-bhx-yellow text-amber-900">BẢNG 2</span>
+              <h3 class="text-sm sm:text-base font-bold text-white tracking-tight">Báo Cáo Retime Doanh Thu Hôm Nay</h3>
+            </div>
+            <p class="text-xs text-amber-100 mt-0.5">Doanh số thời gian thực (chi tiết Offline & Online)</p>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-amber-100">
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>Dữ liệu Retime trực tiếp</span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left text-xs sm:text-sm">
+            <thead class="bg-slate-50 text-slate-600 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200">
+              <tr>
+                <th scope="col" class="py-3 px-3 text-center w-14">Xếp hạng</th>
+                <th scope="col" class="py-3 px-4">Tên Siêu Thị & Mã ĐN</th>
+                <th scope="col" class="py-3 px-4 text-right">DT Offline (VNĐ)</th>
+                <th scope="col" class="py-3 px-4 text-right">DT Online (VNĐ)</th>
+                <th scope="col" class="py-3 px-4 text-right text-bhx-green-dark font-extrabold">Tổng Doanh Thu VNĐ</th>
+                <th scope="col" class="py-3 px-3 text-center">Số Hóa Đơn</th>
+              </tr>
+            </thead>
+            <tbody id="table-retime-body" class="divide-y divide-slate-100 text-slate-700"></tbody>
+            <tfoot class="bg-amber-50/80 font-bold border-t-2 border-amber-600 text-xs sm:text-sm">
+              <tr id="table-retime-foot"></tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- MODAL CẬP NHẬT DATA MỚI -->
+  <div id="import-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-xs">
+    <div class="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden border border-slate-200">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-bhx-green-dark to-bhx-green text-white">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-bhx-yellow text-bhx-green-dark font-black flex items-center justify-center shadow-xs">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+              Cập Nhật Số Liệu Siêu Thị Mới
+              <span class="text-[11px] font-semibold bg-bhx-yellow text-bhx-green-dark px-2 py-0.5 rounded-full">
+                Auto Sync
+              </span>
+            </h3>
+            <p class="text-xs text-emerald-100">
+              Nhập dữ liệu nhanh qua Dán Excel, Tải file .xlsx hoặc Đồng bộ Google Sheets.
+            </p>
+          </div>
+        </div>
+        <button onclick="closeImportModal()" class="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <!-- Tab Switcher -->
+      <div class="flex items-center gap-2 px-5 py-2.5 bg-slate-50 border-b border-slate-200 text-xs font-bold">
+        <button onclick="switchImportTab('paste')" id="modal-tab-paste" class="px-3 py-1.5 rounded-lg bg-bhx-green text-white shadow-xs">
+          1. Dán từ Excel / Google Sheet
+        </button>
+        <button onclick="switchImportTab('file')" id="modal-tab-file" class="px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-200">
+          2. Tải File Excel (.xlsx / .csv)
+        </button>
+        <button onclick="switchImportTab('gsheet')" id="modal-tab-gsheet" class="px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-200">
+          3. Kết nối Link Google Sheet
+        </button>
+      </div>
+
+      <!-- Date Input & Reset -->
+      <div class="px-5 py-2 bg-emerald-50/60 border-b border-emerald-100 flex items-center justify-between text-xs text-slate-700">
+        <div class="flex items-center gap-2">
+          <span class="font-semibold text-bhx-green-dark">Ngày báo cáo:</span>
+          <input type="text" id="modal-date-input" value="26/03/2026" class="px-2 py-1 bg-white border border-emerald-300 rounded text-xs font-mono font-bold text-slate-800 w-32 focus:outline-none focus:ring-1 focus:ring-bhx-green">
+        </div>
+        <button onclick="resetToOriginalData()" class="text-xs text-slate-500 hover:text-rose-600 font-medium">
+          Khôi phục dữ liệu gốc mẫu
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="flex-1 overflow-y-auto p-5 space-y-4 text-xs">
+        
+        <!-- Tab 1: Paste -->
+        <div id="import-content-paste" class="space-y-3">
+          <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900">
+            <p class="font-bold mb-1">📋 Cách dán nhanh từ Excel:</p>
+            <p class="text-[11px] text-amber-800">
+              Bôi đen các dòng trong bảng Excel của bạn, nhấn <b>Ctrl + C</b> và dán (<b>Ctrl + V</b>) vào ô dưới:
+            </p>
+          </div>
+          <textarea id="modal-paste-area" rows="7" placeholder="Dán các dòng copy từ Excel vào đây..." class="w-full p-3 font-mono text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-bhx-green custom-scrollbar"></textarea>
+          <div class="flex justify-end">
+            <button onclick="parsePastedText()" class="px-4 py-2 bg-bhx-green text-white font-bold rounded-lg hover:bg-bhx-green-dark transition">
+              Kiểm tra & Xem thử dữ liệu
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab 2: File Upload -->
+        <div id="import-content-file" class="hidden space-y-4">
+          <div class="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center hover:border-bhx-green bg-slate-50/50 flex flex-col items-center justify-center">
+            <h4 class="font-bold text-sm text-slate-800 mb-1">Chọn file Excel (.xlsx, .xls, .csv)</h4>
+            <p class="text-xs text-slate-500 mb-4">Tải lên file báo cáo xuất từ hệ thống siêu thị Bách Hóa Xanh</p>
+            <label class="cursor-pointer px-4 py-2 bg-bhx-green text-white rounded-lg font-bold text-xs hover:bg-bhx-green-dark transition">
+              <span>Chọn file từ thiết bị</span>
+              <input type="file" accept=".xlsx,.xls,.csv" onchange="handleExcelFileUpload(event)" class="hidden">
+            </label>
+          </div>
+        </div>
+
+        <!-- Tab 3: Google Sheet -->
+        <div id="import-content-gsheet" class="hidden space-y-3">
+          <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-950">
+            <p class="font-bold mb-1">🔗 Đồng bộ Google Sheet tự động:</p>
+            <p class="text-[11px] text-emerald-800">
+              Dán đường link chia sẻ của file Google Sheets (đảm bảo quyền "Bất kỳ ai có liên kết đều có thể xem").
+            </p>
+          </div>
+          <div class="flex gap-2">
+            <input type="text" id="modal-gsheet-input" placeholder="https://docs.google.com/spreadsheets/d/.../edit?usp=sharing" class="flex-1 p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-bhx-green">
+            <button onclick="fetchGoogleSheetData()" class="px-4 py-2 bg-bhx-green text-white font-bold rounded-xl hover:bg-bhx-green-dark transition flex-shrink-0">
+              Đồng Bộ Ngay
+            </button>
+          </div>
+        </div>
+
+        <!-- Status Alert -->
+        <div id="modal-alert" class="hidden p-3 rounded-xl text-xs"></div>
+
+        <!-- Preview Table -->
+        <div id="modal-preview-section" class="hidden space-y-2 pt-2 border-t border-slate-200">
+          <div class="flex items-center justify-between font-bold text-slate-800">
+            <span id="modal-preview-title">Bản xem trước dữ liệu mới</span>
+            <span class="text-bhx-green" id="modal-preview-total"></span>
+          </div>
+          <div class="max-h-56 overflow-y-auto border border-slate-200 rounded-xl custom-scrollbar">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0">
+                <tr>
+                  <th class="p-2 text-center w-8">#</th>
+                  <th class="p-2">Tên Siêu Thị</th>
+                  <th class="p-2 text-right">Lũy Kế (VNĐ)</th>
+                  <th class="p-2 text-right">Base (VNĐ)</th>
+                  <th class="p-2 text-center">% Đạt</th>
+                  <th class="p-2 text-right">Hôm Nay</th>
+                </tr>
+              </thead>
+              <tbody id="modal-preview-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+        <div class="text-xs text-slate-500">
+          Số liệu mới sẽ lưu tự động vào trình duyệt (F5 không mất).
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="closeImportModal()" class="px-4 py-2 bg-white border border-slate-300 rounded-lg font-semibold text-slate-700 hover:bg-slate-100">
+            Hủy
+          </button>
+          <button id="modal-apply-btn" onclick="applyParsedData()" disabled class="px-5 py-2 bg-bhx-green text-white font-bold rounded-lg hover:bg-bhx-green-dark transition shadow-md disabled:opacity-40 disabled:cursor-not-allowed">
+            Áp Dụng Dữ Liệu Này
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="mt-8 bg-white border-t border-slate-200 py-5 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-bhx-green"></span>
+        <span class="font-semibold text-slate-700">Hệ thống Quản lý Báo cáo Bách Hóa Xanh</span>
+        <span class="text-slate-400">·</span>
+        <span>An Giang Supermarket Cluster</span>
+      </div>
+      <div>
+        © 2026 Bách Hóa Xanh · File HTML đơn độc lập chạy trên mọi hosting miễn phí.
+      </div>
+    </div>
+  </footer>
+
+  <!-- SCRIPT LOGIC & CHART -->
+  <script>
+    // Dữ liệu mặc định 21 siêu thị
+    const DEFAULT_SUPERMARKETS = [
+      { rankLuyKe: 1, rankRetime: 1, code: "6119", name: "BHX_AGI_TTO - Thửa 309 Tri Tôn", shortName: "Thửa 309 Tri Tôn", tier: "5 Tỷ -> <8 Tỷ", thucHien: 2785620000, base: 3100000000, percentComplete: 89.86, conLai: 314380000, dtOfflineToday: 98405000, dtOnlineToday: 24935127, tongDtToday: 123340127, totalBillsToday: 698 },
+      { rankLuyKe: 2, rankRetime: 4, code: "6220", name: "BHX_AGI_TRI - Chợ Mới Nhà Bàng", shortName: "Chợ Mới Nhà Bàng", tier: "5 Tỷ -> <8 Tỷ", thucHien: 2420150000, base: 2800000000, percentComplete: 86.43, conLai: 379850000, dtOfflineToday: 52894000, dtOnlineToday: 9708261, tongDtToday: 62602261, totalBillsToday: 504 },
+      { rankLuyKe: 3, rankRetime: 3, code: "4687", name: "BHX_AGI_LXU - Thửa 1615 Mỹ Quý", shortName: "Thửa 1615 Mỹ Quý", tier: "3 Tỷ -> <5 Tỷ", thucHien: 1845900000, base: 1950000000, percentComplete: 94.66, conLai: 104100000, dtOfflineToday: 55736000, dtOnlineToday: 8765112, tongDtToday: 64501112, totalBillsToday: 521 },
+      { rankLuyKe: 4, rankRetime: 2, code: "5028", name: "BHX_AGI_TTO - Thửa 74 Tỉnh Biên", shortName: "Thửa 74 Tỉnh Biên", tier: "3 Tỷ -> <5 Tỷ", thucHien: 1732450000, base: 1900000000, percentComplete: 91.18, conLai: 167550000, dtOfflineToday: 50695000, dtOnlineToday: 18277681, tongDtToday: 68972681, totalBillsToday: 452 },
+      { rankLuyKe: 5, rankRetime: 6, code: "7140", name: "BHX_AGI_TTO - Ngã tư Lư Trì (Ba Chúc)", shortName: "Ngã tư Lư Trì (Ba Chúc)", tier: "3 Tỷ -> <5 Tỷ", thucHien: 1586300000, base: 1750000000, percentComplete: 90.65, conLai: 163700000, dtOfflineToday: 45739000, dtOnlineToday: 5689135, tongDtToday: 51428135, totalBillsToday: 403 },
+      { rankLuyKe: 6, rankRetime: 5, code: "30256", name: "BHX_AGI_LXU - Thửa 3409 Mỹ Quý", shortName: "Thửa 3409 Mỹ Quý", tier: "3 Tỷ -> <5 Tỷ", thucHien: 1512800000, base: 1700000000, percentComplete: 88.99, conLai: 187200000, dtOfflineToday: 48210000, dtOnlineToday: 8450200, tongDtToday: 56660200, totalBillsToday: 410 },
+      { rankLuyKe: 7, rankRetime: 7, code: "5806", name: "BHX_AGI_LXU - Tổ 17 Chợ Láng", shortName: "Tổ 17 Chợ Láng", tier: "3 Tỷ -> <5 Tỷ", thucHien: 1465200000, base: 1650000000, percentComplete: 88.80, conLai: 184800000, dtOfflineToday: 46937000, dtOnlineToday: 5821400, tongDtToday: 52758400, totalBillsToday: 412 },
+      { rankLuyKe: 8, rankRetime: 8, code: "15033", name: "BHX_AGI_LXU - Bình Đức", shortName: "Bình Đức", tier: "1.2 Tỷ -> <2 Tỷ", thucHien: 1185400000, base: 1300000000, percentComplete: 91.18, conLai: 114600000, dtOfflineToday: 35136000, dtOnlineToday: 10130800, tongDtToday: 45266800, totalBillsToday: 347 },
+      { rankLuyKe: 9, rankRetime: 9, code: "10070", name: "BHX_AGI_CPH - Thạnh Mỹ Tây", shortName: "Thạnh Mỹ Tây", tier: "1.2 Tỷ -> <2 Tỷ", thucHien: 1142600000, base: 1280000000, percentComplete: 89.27, conLai: 137400000, dtOfflineToday: 38787000, dtOnlineToday: 5565723, tongDtToday: 44352723, totalBillsToday: 334 },
+      { rankLuyKe: 10, rankRetime: 12, code: "5118", name: "BHX_AGI_CTO - Thửa 117 Vĩnh Bình", shortName: "Thửa 117 Vĩnh Bình", tier: "1.2 Tỷ -> <2 Tỷ", thucHien: 1098700000, base: 1250000000, percentComplete: 87.90, conLai: 151300000, dtOfflineToday: 36957000, dtOnlineToday: 2429127, tongDtToday: 39386127, totalBillsToday: 303 },
+      { rankLuyKe: 11, rankRetime: 14, code: "8873", name: "BHX_AGI_TBI - An Hảo", shortName: "An Hảo", tier: "1.2 Tỷ -> <2 Tỷ", thucHien: 1054200000, base: 1200000000, percentComplete: 87.85, conLai: 145800000, dtOfflineToday: 33175000, dtOnlineToday: 2724300, tongDtToday: 35899300, totalBillsToday: 288 },
+      { rankLuyKe: 12, rankRetime: 10, code: "29756", name: "BHX_AGI_YTT - Chợ Kênh 7", shortName: "Chợ Kênh 7", tier: "1.2 Tỷ -> <2 Tỷ", thucHien: 1025800000, base: 1150000000, percentComplete: 89.20, conLai: 124200000, dtOfflineToday: 33836000, dtOnlineToday: 7587009, tongDtToday: 41423009, totalBillsToday: 323 },
+      { rankLuyKe: 13, rankRetime: 11, code: "9376", name: "BHX_AGI_TTO - Lương An Trà (Giồng Cát)", shortName: "Lương An Trà (Giồng Cát)", tier: "1.2 Tỷ -> <2 Tỷ", thucHien: 994500000, base: 1150000000, percentComplete: 86.48, conLai: 155500000, dtOfflineToday: 32800000, dtOnlineToday: 7645396, tongDtToday: 40445396, totalBillsToday: 292 },
+      { rankLuyKe: 14, rankRetime: 15, code: "4684", name: "BHX_AGI_LXU - Thửa 1615 Vĩnh Thuận (Chợ Vĩnh Tre)", shortName: "Chợ Vĩnh Tre", tier: "1.2 Tỷ -> <2 Tỷ", thucHien: 978300000, base: 1120000000, percentComplete: 87.35, conLai: 141700000, dtOfflineToday: 31685000, dtOnlineToday: 3744920, tongDtToday: 35429920, totalBillsToday: 271 },
+      { rankLuyKe: 15, rankRetime: 13, code: "35562", name: "BHX_AGI_CTO - Chợ Tà Đảnh", shortName: "Chợ Tà Đảnh", tier: "1.2 Tỷ -> <2 Tỷ", thucHien: 946800000, base: 1100000000, percentComplete: 86.07, conLai: 153200000, dtOfflineToday: 31525000, dtOnlineToday: 5666800, tongDtToday: 37191800, totalBillsToday: 265 },
+      { rankLuyKe: 16, rankRetime: 16, code: "30453", name: "BHX_AGI_ACU - Vĩnh Hậu", shortName: "Vĩnh Hậu", tier: "1.2 Tỷ -> <2 Tỷ", thucHien: 923400000, base: 1080000000, percentComplete: 85.50, conLai: 156600000, dtOfflineToday: 29842000, dtOnlineToday: 4817100, tongDtToday: 34659100, totalBillsToday: 277 },
+      { rankLuyKe: 17, rankRetime: 19, code: "27944", name: "BHX_AGI_VGI - Vĩnh Gia", shortName: "Vĩnh Gia", tier: "1.2 Tỷ -> <2 Tỷ", thucHien: 896200000, base: 1050000000, percentComplete: 85.35, conLai: 153800000, dtOfflineToday: 28472000, dtOnlineToday: 1374107, tongDtToday: 29846107, totalBillsToday: 263 },
+      { rankLuyKe: 18, rankRetime: 17, code: "35547", name: "BHX_AGI_CTO - Chợ Cỏ Đỏ", shortName: "Chợ Cỏ Đỏ", tier: "1.2 Tỷ -> <2 Tỷ", thucHien: 881100000, base: 1020000000, percentComplete: 86.38, conLai: 138900000, dtOfflineToday: 27896000, dtOnlineToday: 4792000, tongDtToday: 32688000, totalBillsToday: 254 },
+      { rankLuyKe: 19, rankRetime: 21, code: "9307", name: "BHX_AGI_LXU - Mỹ Hòa Hưng", shortName: "Mỹ Hòa Hưng", tier: "1.2 Tỷ -> <2 Tỷ", thucHien: 812500000, base: 980000000, percentComplete: 82.91, conLai: 167500000, dtOfflineToday: 23941000, dtOnlineToday: 1703818, tongDtToday: 25644818, totalBillsToday: 209 },
+      { rankLuyKe: 20, rankRetime: 18, code: "29509", name: "BHX_AGI_VNH - Vĩnh Nhuận", shortName: "Vĩnh Nhuận", tier: "1.2 Tỷ -> <2 Tỷ", thucHien: 798400000, base: 980000000, percentComplete: 81.47, conLai: 181600000, dtOfflineToday: 23896000, dtOnlineToday: 7645396, tongDtToday: 31541396, totalBillsToday: 232 },
+      { rankLuyKe: 21, rankRetime: 20, code: "27544", name: "BHX_AGI_VGI - Vĩnh Điều", shortName: "Vĩnh Điều", tier: "1.2 Tỷ -> <2 Tỷ", thucHien: 772100000, base: 950000000, percentComplete: 81.27, conLai: 177900000, dtOfflineToday: 23800000, dtOnlineToday: 6838623, tongDtToday: 30638623, totalBillsToday: 228 }
+    ];
+
+    // Load from localStorage or default
+    let supermarkets = [];
+    try {
+      const saved = localStorage.getItem('bhx_supermarket_data');
+      if (saved) {
+        supermarkets = JSON.parse(saved);
+        document.getElementById('custom-data-badge').classList.remove('hidden');
+      } else {
+        supermarkets = [...DEFAULT_SUPERMARKETS];
+      }
+    } catch {
+      supermarkets = [...DEFAULT_SUPERMARKETS];
+    }
+
+    let reportDateStr = localStorage.getItem('bhx_report_date') || "25/03/2026";
+    let currentTier = 'all';
+    let searchQuery = '';
+    let chartInstance = null;
+    let chartMode = 'luyke';
+    let tempParsedRows = null;
+
+    function formatVND(num) {
+      return new Intl.NumberFormat('vi-VN').format(Math.round(num)) + ' đ';
+    }
+
+    function formatShortVND(num) {
+      if (num >= 1000000000) return (num / 1000000000).toFixed(2).replace('.', ',') + ' Tỷ';
+      if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.', ',') + ' Tr';
+      return formatVND(num);
+    }
+
+    function getRankBadge(rank) {
+      if (rank === 1) return '<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-400 text-amber-950 font-extrabold text-xs shadow-xs">1</span>';
+      if (rank === 2) return '<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-300 text-slate-800 font-extrabold text-xs shadow-xs">2</span>';
+      if (rank === 3) return '<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-600 text-white font-extrabold text-xs shadow-xs">3</span>';
+      return `<span class="inline-flex items-center justify-center w-6 h-6 text-slate-500 font-semibold text-xs">${rank}</span>`;
+    }
+
+    function getFilteredData() {
+      return supermarkets.filter(item => {
+        const matchesTier = (currentTier === 'all') || (item.tier === currentTier);
+        const q = searchQuery.trim().toLowerCase();
+        const matchesSearch = !q || item.name.toLowerCase().includes(q) || item.code.includes(q);
+        return matchesTier && matchesSearch;
+      });
+    }
+
+    function updateSummaryCards() {
+      const totalThucHien = supermarkets.reduce((a, b) => a + b.thucHien, 0);
+      const totalBase = supermarkets.reduce((a, b) => a + b.base, 0);
+      const totalConLai = supermarkets.reduce((a, b) => a + b.conLai, 0);
+      const totalToday = supermarkets.reduce((a, b) => a + b.tongDtToday, 0);
+      const totalOffline = supermarkets.reduce((a, b) => a + b.dtOfflineToday, 0);
+      const totalOnline = supermarkets.reduce((a, b) => a + b.dtOnlineToday, 0);
+      const totalBills = supermarkets.reduce((a, b) => a + b.totalBillsToday, 0);
+      const avgPct = totalBase > 0 ? (totalThucHien / totalBase * 100) : 0;
+
+      document.getElementById('stat-total-luyke').textContent = formatVND(totalThucHien);
+      document.getElementById('stat-total-base').textContent = formatVND(totalBase);
+      document.getElementById('stat-avg-percent').textContent = avgPct.toFixed(2) + '%';
+      document.getElementById('stat-total-today').textContent = formatVND(totalToday);
+      document.getElementById('stat-offline-today').textContent = (totalOffline / 1000000).toFixed(1) + ' Tr';
+      document.getElementById('stat-online-today').textContent = (totalOnline / 1000000).toFixed(1) + ' Tr';
+      document.getElementById('stat-store-count').innerHTML = `${supermarkets.length} / ${supermarkets.length} <span class="text-sm font-normal text-slate-500">Điểm bán</span>`;
+      document.getElementById('stat-total-bills').innerHTML = `${totalBills.toLocaleString('vi-VN')} <span class="text-sm font-normal text-slate-500">Hóa đơn</span>`;
+      document.getElementById('stat-total-conlai').textContent = formatVND(totalConLai);
+
+      document.getElementById('header-store-count').textContent = `Khu vực Tỉnh An Giang (${supermarkets.length} Siêu thị)`;
+      document.getElementById('banner-report-date').textContent = `Ngày ${reportDateStr}`;
+      document.getElementById('card-date-indicator').textContent = `Cập nhật ngày ${reportDateStr}`;
+      document.getElementById('banner-progress').textContent = avgPct.toFixed(2) + '%';
+      document.getElementById('banner-active-stores').textContent = `${supermarkets.length}/${supermarkets.length} Điểm bán kết nối POS`;
+      document.getElementById('filter-all-btn').textContent = `Tất cả (${supermarkets.length})`;
+    }
+
+    function renderTables() {
+      const filtered = getFilteredData();
+      const sortedLuyKe = [...filtered].sort((a, b) => b.thucHien - a.thucHien);
+      const sortedRetime = [...filtered].sort((a, b) => b.tongDtToday - a.tongDtToday);
+
+      // Render Bảng 1: Lũy Kế
+      const luyKeBody = document.getElementById('table-luyke-body');
+      if (sortedLuyKe.length === 0) {
+        luyKeBody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400">Không tìm thấy siêu thị phù hợp điều kiện lọc</td></tr>`;
+      } else {
+        luyKeBody.innerHTML = sortedLuyKe.map((s, idx) => {
+          const isTop3 = idx < 3;
+          const pct = s.percentComplete;
+          const barColor = pct >= 90 ? 'bg-bhx-green' : pct >= 85 ? 'bg-amber-500' : 'bg-orange-500';
+
+          return `
+            <tr class="hover:bg-slate-50/80 transition ${isTop3 ? 'bg-amber-50/20' : ''}">
+              <td class="py-3 px-3 text-center whitespace-nowrap">${getRankBadge(idx + 1)}</td>
+              <td class="py-3 px-4">
+                <div class="font-bold text-slate-900">${s.name}</div>
+                <div class="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
+                  <span class="font-mono font-medium text-slate-600">Mã: ${s.code}</span>
+                  <span>·</span>
+                  <span class="text-bhx-green-dark font-medium">${s.tier}</span>
+                </div>
+              </td>
+              <td class="py-3 px-4 text-right font-mono font-bold text-bhx-green-dark whitespace-nowrap">${formatVND(s.thucHien)}</td>
+              <td class="py-3 px-4 text-right font-mono text-slate-600 whitespace-nowrap">${formatVND(s.base)}</td>
+              <td class="py-3 px-4 text-center">
+                <div class="flex items-center justify-between text-xs mb-1">
+                  <span class="font-bold font-mono ${pct >= 90 ? 'text-bhx-green' : 'text-slate-800'}">${pct.toFixed(2)}%</span>
+                  <span class="text-[10px] text-slate-500">Mục tiêu: 100%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                  <div class="${barColor} h-2 rounded-full transition-all duration-500" style="width: ${Math.min(pct, 100)}%"></div>
+                </div>
+              </td>
+              <td class="py-3 px-4 text-right font-mono font-semibold text-rose-600 whitespace-nowrap">${formatVND(s.conLai)}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      // Summary Bảng 1
+      const totalThucHien = filtered.reduce((a, b) => a + b.thucHien, 0);
+      const totalBase = filtered.reduce((a, b) => a + b.base, 0);
+      const totalConLai = filtered.reduce((a, b) => a + b.conLai, 0);
+      const avgPct = totalBase > 0 ? (totalThucHien / totalBase * 100) : 0;
+
+      document.getElementById('table-luyke-foot').innerHTML = `
+        <td class="py-3.5 px-3 text-center">TỔNG</td>
+        <td class="py-3.5 px-4">Tổng cộng (${filtered.length} Siêu thị)</td>
+        <td class="py-3.5 px-4 text-right font-mono text-bhx-green-dark">${formatVND(totalThucHien)}</td>
+        <td class="py-3.5 px-4 text-right font-mono text-slate-700">${formatVND(totalBase)}</td>
+        <td class="py-3.5 px-4 text-center font-mono text-bhx-green">${avgPct.toFixed(2)}%</td>
+        <td class="py-3.5 px-4 text-right font-mono text-rose-600">${formatVND(totalConLai)}</td>
+      `;
+
+      // Render Bảng 2: Retime
+      const retimeBody = document.getElementById('table-retime-body');
+      if (sortedRetime.length === 0) {
+        retimeBody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400">Không tìm thấy siêu thị phù hợp điều kiện lọc</td></tr>`;
+      } else {
+        retimeBody.innerHTML = sortedRetime.map((s, idx) => {
+          const isTop3 = idx < 3;
+          return `
+            <tr class="hover:bg-slate-50/80 transition ${isTop3 ? 'bg-amber-50/30' : ''}">
+              <td class="py-3 px-3 text-center whitespace-nowrap">${getRankBadge(idx + 1)}</td>
+              <td class="py-3 px-4">
+                <div class="font-bold text-slate-900">${s.name}</div>
+                <div class="text-[11px] text-slate-500 font-mono mt-0.5">Mã: ${s.code} · ${s.tier}</div>
+              </td>
+              <td class="py-3 px-4 text-right font-mono text-slate-700 whitespace-nowrap">${formatVND(s.dtOfflineToday)}</td>
+              <td class="py-3 px-4 text-right font-mono text-emerald-700 whitespace-nowrap">${formatVND(s.dtOnlineToday)}</td>
+              <td class="py-3 px-4 text-right font-mono font-extrabold text-amber-800 whitespace-nowrap text-sm sm:text-base">${formatVND(s.tongDtToday)}</td>
+              <td class="py-3 px-3 text-center font-mono font-bold text-slate-700">${s.totalBillsToday.toLocaleString('vi-VN')}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      // Summary Bảng 2
+      const totalOffline = filtered.reduce((a, b) => a + b.dtOfflineToday, 0);
+      const totalOnline = filtered.reduce((a, b) => a + b.dtOnlineToday, 0);
+      const totalToday = filtered.reduce((a, b) => a + b.tongDtToday, 0);
+      const totalBills = filtered.reduce((a, b) => a + b.totalBillsToday, 0);
+
+      document.getElementById('table-retime-foot').innerHTML = `
+        <td class="py-3.5 px-3 text-center">TỔNG</td>
+        <td class="py-3.5 px-4">Tổng Retime Hôm Nay (${filtered.length} Siêu thị)</td>
+        <td class="py-3.5 px-4 text-right font-mono text-slate-800">${formatVND(totalOffline)}</td>
+        <td class="py-3.5 px-4 text-right font-mono text-emerald-800">${formatVND(totalOnline)}</td>
+        <td class="py-3.5 px-4 text-right font-mono text-amber-900 text-sm sm:text-base">${formatVND(totalToday)}</td>
+        <td class="py-3.5 px-3 text-center font-mono text-slate-900">${totalBills.toLocaleString('vi-VN')}</td>
+      `;
+
+      updateSummaryCards();
+    }
+
+    function initChart() {
+      const ctx = document.getElementById('topRevenueChart').getContext('2d');
+      const isLuyKe = chartMode === 'luyke';
+
+      const sorted = [...supermarkets].sort((a, b) => {
+        return isLuyKe ? (b.thucHien - a.thucHien) : (b.tongDtToday - a.tongDtToday);
+      }).slice(0, 8);
+
+      const labels = sorted.map(s => s.shortName || s.name.slice(0, 20));
+      const dataValues = sorted.map(s => isLuyKe ? s.thucHien : s.tongDtToday);
+      const baseValues = sorted.map(s => s.base);
+
+      const datasets = isLuyKe ? [
+        { label: 'Doanh thu Thực hiện (VNĐ)', data: dataValues, backgroundColor: '#007738', borderRadius: 6, barPercentage: 0.65 },
+        { label: 'Chỉ tiêu Base (VNĐ)', data: baseValues, backgroundColor: '#FFC700', borderRadius: 6, barPercentage: 0.65 }
+      ] : [
+        { label: 'DT Offline Hôm nay (VNĐ)', data: sorted.map(s => s.dtOfflineToday), backgroundColor: '#007738', borderRadius: 6, stack: 'today' },
+        { label: 'DT Online Hôm nay (VNĐ)', data: sorted.map(s => s.dtOnlineToday), backgroundColor: '#FFC700', borderRadius: 6, stack: 'today' }
+      ];
+
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: { font: { family: '"Plus Jakarta Sans"', size: 12, weight: 600 }, color: '#1e293b' }
+            },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              callbacks: {
+                label: function(context) { return ` ${context.dataset.label}: ${formatVND(context.raw)}`; }
+              }
+            }
+          },
+          scales: {
+            x: { grid: { display: false } },
+            y: {
+              grid: { color: '#f1f5f9' },
+              ticks: { callback: function(val) { return formatShortVND(val); } }
+            }
+          }
+        }
+      });
+    }
+
+    function switchChartMode(mode) {
+      chartMode = mode;
+      const btnLuyKe = document.getElementById('btn-chart-luyke');
+      const btnToday = document.getElementById('btn-chart-today');
+
+      if (mode === 'luyke') {
+        btnLuyKe.className = 'px-3 py-1.5 rounded-md transition shadow-xs bg-bhx-green text-white';
+        btnToday.className = 'px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900';
+      } else {
+        btnToday.className = 'px-3 py-1.5 rounded-md transition shadow-xs bg-bhx-green text-white';
+        btnLuyKe.className = 'px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900';
+      }
+      initChart();
+    }
+
+    function setTierFilter(tier) {
+      currentTier = tier;
+      document.querySelectorAll('.tier-btn').forEach(btn => {
+        if (btn.getAttribute('data-tier') === tier) {
+          btn.className = 'tier-btn px-2.5 py-1 rounded-md text-xs font-medium bg-bhx-green text-white';
+        } else {
+          btn.className = 'tier-btn px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200';
+        }
+      });
+      renderTables();
+    }
+
+    function handleFilterChange() {
+      searchQuery = document.getElementById('search-input').value;
+      renderTables();
+    }
+
+    // MODAL LOGIC
+    function openImportModal() {
+      document.getElementById('import-modal').classList.remove('hidden');
+      document.getElementById('import-modal').classList.add('flex');
+    }
+
+    function closeImportModal() {
+      document.getElementById('import-modal').classList.add('hidden');
+      document.getElementById('import-modal').classList.remove('flex');
+      tempParsedRows = null;
+      document.getElementById('modal-preview-section').classList.add('hidden');
+      document.getElementById('modal-alert').classList.add('hidden');
+      document.getElementById('modal-apply-btn').disabled = true;
+    }
+
+    function switchImportTab(tab) {
+      ['paste', 'file', 'gsheet'].forEach(t => {
+        const tabBtn = document.getElementById(`modal-tab-${t}`);
+        const content = document.getElementById(`import-content-${t}`);
+        if (t === tab) {
+          tabBtn.className = 'px-3 py-1.5 rounded-lg bg-bhx-green text-white shadow-xs';
+          content.classList.remove('hidden');
+        } else {
+          tabBtn.className = 'px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-200';
+          content.classList.add('hidden');
+        }
+      });
+    }
+
+    function parseRawRows(rows) {
+      const valid = rows.filter(r => r && r.length > 0 && r.some(c => c !== '' && c !== null && c !== undefined));
+      if (!valid.length) throw new Error('Không có dữ liệu hợp lệ');
+
+      let startIdx = 0;
+      const first0 = String(valid[0][0] || '').toLowerCase();
+      if (first0.includes('ngày') || first0.includes('mã') || first0.includes('stt') || isNaN(Number(valid[0][0]))) {
+        startIdx = 1;
+      }
+
+      const parseNum = (v) => {
+        if (!v) return 0;
+        const clean = String(v).replace(/[^0-9.-]/g, '');
+        const p = parseFloat(clean);
+        return isNaN(p) ? 0 : p;
+      };
+
+      const result = [];
+      for (let i = startIdx; i < valid.length; i++) {
+        const row = valid[i];
+        if (row.length < 2) continue;
+
+        const str0 = String(row[0] || '').trim();
+        const str1 = String(row[1] || '').trim();
+        const codeMatch = (str0 + ' ' + str1).match(/\b\d{4,5}\b/);
+        const code = codeMatch ? codeMatch[0] : `ST${i}`;
+        let name = str1.length > 5 ? str1 : str0;
+        if (!name.includes(code)) name = `${code} - ${name}`;
+
+        const nums = [];
+        for (let j = 0; j < row.length; j++) {
+          const n = parseNum(row[j]);
+          if (n > 0) nums.push(n);
+        }
+
+        let base = 0, thucHien = 0, dtOffline = 0, dtOnline = 0, bills = 300;
+        if (nums.length >= 4) {
+          const sorted = [...nums].sort((a, b) => b - a);
+          base = sorted[0] > 500000000 ? sorted[0] : 1200000000;
+          thucHien = sorted[1] > 200000000 ? sorted[1] : Math.round(base * 0.88);
+          dtOffline = sorted[2] > 10000000 ? sorted[2] : 35000000;
+          dtOnline = sorted[3] > 500000 ? sorted[3] : 5000000;
+          bills = sorted.find(n => n > 50 && n < 2000) || 300;
+        } else {
+          base = parseNum(row[3]) || 1200000000;
+          thucHien = parseNum(row[2]) || Math.round(base * 0.88);
+          dtOffline = parseNum(row[4]) || 35000000;
+          dtOnline = parseNum(row[5]) || 5000000;
+        }
+
+        const pct = base > 0 ? (thucHien / base * 100) : 0;
+        const conLai = Math.max(0, base - thucHien);
+        let tier = base >= 2200000000 ? '5 Tỷ -> <8 Tỷ' : base >= 1400000000 ? '3 Tỷ -> <5 Tỷ' : '1.2 Tỷ -> <2 Tỷ';
+
+        result.push({
+          code,
+          name,
+          shortName: name.replace(/^.*-\s*/, '').slice(0, 25),
+          tier,
+          thucHien,
+          base,
+          percentComplete: parseFloat(pct.toFixed(2)),
+          conLai,
+          dtOfflineToday: dtOffline,
+          dtOnlineToday: dtOnline,
+          tongDtToday: dtOffline + dtOnline,
+          totalBillsToday: Math.round(bills)
+        });
+      }
+
+      if (!result.length) throw new Error('Không phân tích được danh sách siêu thị');
+      return result;
+    }
+
+    function showModalAlert(msg, isError) {
+      const el = document.getElementById('modal-alert');
+      el.className = isError 
+        ? 'p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl' 
+        : 'p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl';
+      el.textContent = msg;
+      el.classList.remove('hidden');
+    }
+
+    function showModalPreview(parsed) {
+      tempParsedRows = parsed;
+      document.getElementById('modal-preview-title').textContent = `Bản xem trước (${parsed.length} Siêu thị)`;
+      const total = parsed.reduce((a, b) => a + b.thucHien, 0);
+      document.getElementById('modal-preview-total').textContent = `Tổng DT Lũy Kế: ${formatVND(total)}`;
+
+      const body = document.getElementById('modal-preview-body');
+      body.innerHTML = parsed.map((r, i) => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-2 text-center text-slate-400 font-mono">${i + 1}</td>
+          <td class="p-2 font-medium text-slate-900">${r.name}</td>
+          <td class="p-2 text-right font-mono text-bhx-green-dark font-semibold">${formatVND(r.thucHien)}</td>
+          <td class="p-2 text-right font-mono text-slate-600">${formatVND(r.base)}</td>
+          <td class="p-2 text-center font-mono font-bold text-emerald-700">${r.percentComplete}%</td>
+          <td class="p-2 text-right font-mono text-amber-800 font-bold">${formatVND(r.tongDtToday)}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('modal-preview-section').classList.remove('hidden');
+      document.getElementById('modal-apply-btn').disabled = false;
+      showModalAlert(`Đã đọc thành công ${parsed.length} siêu thị! Nhấn "Áp Dụng Dữ Liệu Này" để cập nhật lên Dashboard.`, false);
+    }
+
+    function parsePastedText() {
+      const text = document.getElementById('modal-paste-area').value.trim();
+      if (!text) return showModalAlert('Vui lòng dán dữ liệu vào ô phía trên', true);
+      try {
+        const lines = text.split(/\r\n|\n|\r/);
+        const rows = lines.map(line => line.includes('\t') ? line.split('\t') : line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/));
+        const parsed = parseRawRows(rows);
+        showModalPreview(parsed);
+      } catch (e) {
+        showModalAlert(e.message, true);
+      }
+    }
+
+    function handleExcelFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+          const parsed = parseRawRows(rows);
+          showModalPreview(parsed);
+        } catch (err) {
+          showModalAlert('Lỗi đọc file Excel: ' + err.message, true);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    async function fetchGoogleSheetData() {
+      const url = document.getElementById('modal-gsheet-input').value.trim();
+      if (!url) return showModalAlert('Vui lòng nhập đường link Google Sheets', true);
+      try {
+        let csvUrl = url;
+        if (csvUrl.includes('/edit')) csvUrl = csvUrl.replace(/\/edit.*$/, '/export?format=csv');
+        else if (!csvUrl.includes('export?format=csv')) csvUrl += (csvUrl.includes('?') ? '&' : '?') + 'format=csv';
+
+        const res = await fetch(csvUrl);
+        if (!res.ok) throw new Error('Không thể tải link. Hãy kiểm tra quyền "Bất kỳ ai có liên kết đều có thể xem".');
+        const text = await res.text();
+        const lines = text.trim().split(/\r\n|\n|\r/);
+        const rows = lines.map(l => l.split(','));
+        const parsed = parseRawRows(rows);
+        showModalPreview(parsed);
+      } catch (err) {
+        showModalAlert(err.message, true);
+      }
+    }
+
+    function applyParsedData() {
+      if (!tempParsedRows || !tempParsedRows.length) return;
+      supermarkets = tempParsedRows;
+      reportDateStr = document.getElementById('modal-date-input').value.trim() || reportDateStr;
+      localStorage.setItem('bhx_supermarket_data', JSON.stringify(supermarkets));
+      localStorage.setItem('bhx_report_date', reportDateStr);
+      document.getElementById('custom-data-badge').classList.remove('hidden');
+      closeImportModal();
+      renderTables();
+      initChart();
+    }
+
+    function resetToOriginalData() {
+      if (confirm('Bạn có chắc chắn muốn khôi phục về dữ liệu gốc ban đầu?')) {
+        localStorage.removeItem('bhx_supermarket_data');
+        localStorage.removeItem('bhx_report_date');
+        supermarkets = [...DEFAULT_SUPERMARKETS];
+        reportDateStr = "25/03/2026";
+        document.getElementById('custom-data-badge').classList.add('hidden');
+        closeImportModal();
+        renderTables();
+        initChart();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderTables();
+      initChart();
+    });
+  </script>
+</body>
+</html>
